@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: akdev-deployment
+  labels:
+    app: akdev
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: akdev
+  template:
+    metadata:
+      labels:
+        app: akdev
+    spec:
+      containers:
+      - name: akdev
+        image: saviacr2025.azurecr.io/akdev:v1
+        ports:
+        - containerPort: 80

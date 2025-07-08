@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: akuat-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: akuat
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

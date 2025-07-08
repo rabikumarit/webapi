@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: akuat-deployment
+  labels:
+    app: akuat
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: akuat
+  template:
+    metadata:
+      labels:
+        app: akuat
+    spec:
+      containers:
+      - name: akuat
+        image: saviacr2025.azurecr.io/akuat:v1
+        ports:
+        - containerPort: 80
