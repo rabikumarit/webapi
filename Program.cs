@@ -45,11 +45,13 @@ var app = builder.Build();
 app.UseCors("AllowAngularDevClient");
 
 // ✅ Enable Swagger only in development (optional)
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
+// if (app.Environment.IsDevelopment())
+// {
+    
+	app.UseSwagger();
     app.UseSwaggerUI();
-}
+	
+// }
 
 app.UseAuthorization();
 app.MapControllers();
