@@ -19,7 +19,7 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Set AKS context
-      run: az aks get-credentials --resource-group RG1 --name YourAKSCluster
+      run: az aks get-credentials --resource-group RG1 --name MyAKSCluster
 
     - name: Deploy to AKS
       run: |
