@@ -18,7 +18,7 @@ namespace WebAPI.Controllers
         public UserController(IUserRep URep) { _IUserRep = URep; }
         // GET: api/<UserController>
         [HttpGet("GetAll")]
-        public IActionResult GetAll()// This is 2nd code changes
+        public IActionResult GetAll()// This is 2nd code changes for dev pipeline
         {
             var usr = _IUserRep.GetAll();
             return Ok(usr);
