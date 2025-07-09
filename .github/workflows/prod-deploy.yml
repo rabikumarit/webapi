@@ -1,0 +1,27 @@
+name: Prod Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Set AKS context
+      run: az aks get-credentials --resource-group RG1 --name YourAKSCluster
+
+    - name: Deploy to AKS
+      run: |
+        kubectl apply -f manifests/deployment-prod.yaml --namespace akprod
+        kubectl apply -f manifests/service-prod.yaml --namespace akprod
