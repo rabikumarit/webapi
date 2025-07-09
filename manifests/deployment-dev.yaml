@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dev-deployment
+  namespace: akdev
 spec:
   replicas: 2
   selector:
@@ -13,7 +14,10 @@ spec:
         app: webapi
     spec:
       containers:
-      - name: webapi
-        image: saviacr2025.azurecr.io/akdev:v1
-        ports:
-        - containerPort: 80
+        - name: webapi
+          image: saviacr2025.azurecr.io/akdev:v1
+          ports:
+            - containerPort: 80
+          env:
+            - name: ConnectionStrings__dbcn
+              value: "Server=webapiaks.database.windows.net;Database=db_AngularAPI;User=azsqlsrv;Password=sqlsrv@123;TrustServerCertificate=True;"
