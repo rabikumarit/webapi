@@ -1,0 +1,54 @@
+trigger:
+  branches:
+    include:
+      - dev
+
+variables:
+  imageName: 'akdev'
+  azureContainerRegistry: 'saviacr2025.azurecr.io'
+  kubernetesNamespace: 'akdev'
+  dockerfilePath: 'Dockerfile'
+  kubernetesManifestPath: 'manifests'
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildAndPush
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    - task: Docker@2
+      inputs:
+        command: buildAndPush
+        repository: $(azureContainerRegistry)/$(imageName)
+        dockerfile: $(dockerfilePath)
+        tags: |
+          $(Build.BuildId)
+
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - job: DeployToAKS
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: Kubernetes@1
+      displayName: 'Set context'
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscription: '<your-service-connection>'
+        azureResourceGroup: 'RG1'
+        kubernetesCluster: 'MyAKSCluster'
+        namespace: $(kubernetesNamespace)
+
+    - task: KubernetesManifest@0
+      displayName: 'Deploy to AKS'
+      inputs:
+        action: deploy
+        manifests: |
+          $(kubernetesManifestPath)/deployment.yaml
+          $(kubernetesManifestPath)/service.yaml
+        containers: |
+          $(azureContainerRegistry)/$(imageName):$(Build.BuildId)
