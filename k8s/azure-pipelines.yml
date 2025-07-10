@@ -20,10 +20,10 @@ stages:
     - task: Docker@2
       displayName: Build and Push
       inputs:
-        containerRegistry: 'rabikumarit'  # <-- This is your Service Connection Name
+        containerRegistry: 'rabikumarit'  # <-- ACR Service Connection name
         repository: '$(imageName)'
         command: 'buildAndPush'
-        Dockerfile: '**/Dockerfile'
+        Dockerfile: 'Dockerfile'  # Assuming it's at repo root; update path if needed
         tags: |
           $(tag)
 
@@ -35,14 +35,14 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - task: Kubernetes@1
+    - task: AzureCLI@2
       displayName: Set AKS context
       inputs:
-        connectionType: 'Azure Resource Manager'
-        azureSubscriptionEndpoint: 'rabikumarit'  # <-- Match your Service Connection name exactly
-        azureResourceGroup: 'RG1'
-        kubernetesCluster: 'MyAKSCluster'  # <-- Your actual AKS name
-        command: 'login'
+        azureSubscription: 'rabikumarit'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az aks get-credentials --resource-group RG1 --name MyAKSCluster --overwrite-existing
 
     - script: |
         kubectl apply -f k8s/namespace.yaml
