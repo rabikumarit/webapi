@@ -41,7 +41,7 @@ stages:
       displayName: Set AKS context
       inputs:
         azureSubscription: 'saviarm_connection'
-        scriptType: bash
+        scriptType: ps
         scriptLocation: inlineScript
         inlineScript: |
           az aks get-credentials --resource-group RG1 --name MyAKSCluster --overwrite-existing
