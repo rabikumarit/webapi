@@ -15,11 +15,15 @@ stages:
   jobs:
   - job: BuildAndPush
     pool:
-      vmImage: 'ubuntu-latest'
+      name: Default  # 👈 Self-hosted agent pool name
+      demands:
+        - Agent.Name -equals DESKTOP-OML1U2C  # 👈 Your local agent name
+
     steps:
     - checkout: self
 
     - task: Docker@2
+      displayName: 'Build and Push Docker image'
       inputs:
         command: buildAndPush
         repository: $(azureContainerRegistry)/$(imageName)
@@ -32,19 +36,22 @@ stages:
   jobs:
   - job: DeployToAKS
     pool:
-      vmImage: 'ubuntu-latest'
+      name: Default  # 👈 Self-hosted agent pool name
+      demands:
+        - Agent.Name -equals DESKTOP-OML1U2C
+
     steps:
     - task: Kubernetes@1
-      displayName: 'Set context'
+      displayName: 'Set AKS context'
       inputs:
         connectionType: 'Azure Resource Manager'
-        azureSubscription: '<your-service-connection>'
+        azureSubscription: '<your-service-connection-name>'  # 👈 Update this with your actual Azure DevOps service connection name
         azureResourceGroup: 'RG1'
         kubernetesCluster: 'MyAKSCluster'
         namespace: $(kubernetesNamespace)
 
     - task: KubernetesManifest@0
-      displayName: 'Deploy to AKS'
+      displayName: 'Deploy Kubernetes manifests'
       inputs:
         action: deploy
         manifests: |
