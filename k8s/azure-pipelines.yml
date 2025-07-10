@@ -10,16 +10,17 @@ variables:
 
 stages:
 - stage: BuildAndPush
+  displayName: Build and Push Docker Image
   jobs:
   - job: Build
-    displayName: Build and Push Docker Image
+    displayName: Build Image
     pool:
       vmImage: 'ubuntu-latest'
     steps:
     - task: Docker@2
-      displayName: Build and Push
+      displayName: Build and Push Docker Image
       inputs:
-        containerRegistry: 'saviacr2025-connection'  # Docker Registry service connection
+        containerRegistry: 'saviacr2025-connection' # Docker Registry service connection
         repository: '$(imageName)'
         command: 'buildAndPush'
         Dockerfile: 'Dockerfile'
@@ -27,17 +28,18 @@ stages:
           $(tag)
 
 - stage: Deploy
+  displayName: Deploy to AKS
   dependsOn: BuildAndPush
   jobs:
   - job: DeployToAks
-    displayName: Deploy to AKS
+    displayName: Deploy to AKS Cluster
     pool:
       vmImage: 'ubuntu-latest'
     steps:
     - task: AzureCLI@2
       displayName: Set AKS context
       inputs:
-        azureSubscription: 'saviarm_connection'  # Azure Resource Manager service connection
+        azureSubscription: 'saviarm_connection' # Azure Resource Manager connection
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
@@ -48,4 +50,4 @@ stages:
         kubectl apply -f k8s/secret.yaml
         kubectl apply -f k8s/deployment.yaml
         kubectl apply -f k8s/service.yaml
-      displayName: Deploy K8s YAMLs
+      displayName: Apply Kubernetes Manifests
