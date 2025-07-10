@@ -1,3 +1,4 @@
+# azure-pipelines.yml
 trigger:
   branches:
     include:
@@ -15,12 +16,12 @@ stages:
   - job: Build
     displayName: Build Image
     pool:
-      vmImage: 'ubuntu-latest'
+      name: Default
     steps:
     - task: Docker@2
       displayName: Build and Push Docker Image
       inputs:
-        containerRegistry: 'saviacr2025-connection' # Docker Registry service connection
+        containerRegistry: 'saviacr2025-connection'
         repository: '$(imageName)'
         command: 'buildAndPush'
         Dockerfile: 'Dockerfile'
@@ -34,12 +35,12 @@ stages:
   - job: DeployToAks
     displayName: Deploy to AKS Cluster
     pool:
-      vmImage: 'ubuntu-latest'
+      name: Default
     steps:
     - task: AzureCLI@2
       displayName: Set AKS context
       inputs:
-        azureSubscription: 'saviarm_connection' # Azure Resource Manager connection
+        azureSubscription: 'saviarm_connection'
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
