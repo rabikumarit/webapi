@@ -1,3 +1,4 @@
+# azure-pipelines.yml
 trigger:
   branches:
     include:
@@ -5,57 +6,47 @@ trigger:
 
 variables:
   imageName: 'akdev'
-  azureContainerRegistry: 'saviacr2025.azurecr.io'
-  kubernetesNamespace: 'akdev'
-  dockerfilePath: 'Dockerfile'
-  kubernetesManifestPath: 'manifests'
+  acrName: 'saviacr2025.azurecr.io'
+  tag: '$(Build.BuildId)'
 
 stages:
-- stage: Build
+- stage: BuildAndPush
   jobs:
-  - job: BuildAndPush
+  - job: Build
+    displayName: Build and Push Docker Image
     pool:
-      name: Default  # 👈 Self-hosted agent pool name
-      demands:
-        - Agent.Name -equals DESKTOP-OML1U2C  # 👈 Your local agent name
-
+      vmImage: 'ubuntu-latest'
     steps:
-    - checkout: self
-
     - task: Docker@2
-      displayName: 'Build and Push Docker image'
+      displayName: Build and Push
       inputs:
-        command: buildAndPush
-        repository: $(azureContainerRegistry)/$(imageName)
-        dockerfile: $(dockerfilePath)
+        containerRegistry: 'rabikumarit'  # <-- This is your Service Connection Name
+        repository: '$(imageName)'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
         tags: |
-          $(Build.BuildId)
+          $(tag)
 
 - stage: Deploy
-  dependsOn: Build
+  dependsOn: BuildAndPush
   jobs:
-  - job: DeployToAKS
+  - job: DeployToAks
+    displayName: Deploy to AKS
     pool:
-      name: Default  # 👈 Self-hosted agent pool name
-      demands:
-        - Agent.Name -equals DESKTOP-OML1U2C
-
+      vmImage: 'ubuntu-latest'
     steps:
     - task: Kubernetes@1
-      displayName: 'Set AKS context'
+      displayName: Set AKS context
       inputs:
         connectionType: 'Azure Resource Manager'
-        azureSubscription: '<your-service-connection-name>'  # 👈 Update this with your actual Azure DevOps service connection name
+        azureSubscriptionEndpoint: 'rabikumarit'  # <-- Match your Service Connection name exactly
         azureResourceGroup: 'RG1'
-        kubernetesCluster: 'MyAKSCluster'
-        namespace: $(kubernetesNamespace)
+        kubernetesCluster: 'MyAKSCluster'  # <-- Your actual AKS name
+        command: 'login'
 
-    - task: KubernetesManifest@0
-      displayName: 'Deploy Kubernetes manifests'
-      inputs:
-        action: deploy
-        manifests: |
-          $(kubernetesManifestPath)/deployment.yaml
-          $(kubernetesManifestPath)/service.yaml
-        containers: |
-          $(azureContainerRegistry)/$(imageName):$(Build.BuildId)
+    - script: |
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/secret.yaml
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/service.yaml
+      displayName: Deploy K8s YAMLs
