@@ -1,12 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dev-deployment
+  name: webapi-deployment
   namespace: akdev
-  labels:
-    app: webapi
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: webapi
@@ -16,13 +14,9 @@ spec:
         app: webapi
     spec:
       containers:
-      - name: webapi
-        image: saviacr2025.azurecr.io/akdev:v1
+      - name: akswebapp
+        image: saviacr2025.azurecr.io/akdev:7
         ports:
         - containerPort: 80
-        env:
-        - name: ConnectionStrings__dbcn
-          valueFrom:
-            secretKeyRef:
-              name: sql-secret
-              key: dbcn
+      imagePullSecrets:
+      - name: acr-secret

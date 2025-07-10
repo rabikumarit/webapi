@@ -4,24 +4,34 @@ using WebAPI.Repository;
 using Azure.Identity;
 using Azure.Core;
 
-// git changes for local cicd 2
-
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Key Vault URL
 string keyVaultUrl = "https://azkeyvaultwebapi1.vault.azure.net/";
 
-// ✅ Use DefaultAzureCredential always for AKS or container environments
-TokenCredential credential = new DefaultAzureCredential();
+// ✅ Smart credential switch: prefer ClientSecretCredential in container
+TokenCredential credential;
+
+if (builder.Environment.IsDevelopment())
+{
+    credential = new DefaultAzureCredential(); // local dev
+}
+else
+{
+    credential = new ClientSecretCredential(
+        builder.Configuration["TenantId"],
+        builder.Configuration["ClientId"],
+        builder.Configuration["ClientSecret"]
+    );
+}
 
 builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUrl), credential);
 
-// ✅ CORS – only allow Angular dev client (adjust if needed)
+// ✅ CORS – only allow Angular dev client
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularDevClient", policy =>
     {
-        policy.WithOrigins("http://localhost:50342") // or your deployed Angular frontend
+        policy.WithOrigins("http://localhost:50342")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -30,7 +40,7 @@ builder.Services.AddCors(options =>
 // ✅ Configure EF Core with secret from Key Vault
 builder.Services.AddDbContext<APIdbcontext>(options =>
     options.UseSqlServer(
-        builder.Configuration["dbcn"], // secret key should be `dbcn`
+        builder.Configuration["dbcn"],
         sql => sql.MigrationsAssembly("WebAPI"))
 );
 
@@ -43,17 +53,10 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// ✅ Enable CORS
 app.UseCors("AllowAngularDevClient");
 
-// ✅ Enable Swagger only in development (optional)
-// if (app.Environment.IsDevelopment())
-// {
-    
-	app.UseSwagger();
-    app.UseSwaggerUI();
-	
-// }
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthorization();
 app.MapControllers();

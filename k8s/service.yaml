@@ -4,9 +4,9 @@ metadata:
   name: dev-service
   namespace: akdev
 spec:
+  type: LoadBalancer
   selector:
     app: webapi
-  type: LoadBalancer
   ports:
     - protocol: TCP
       port: 80
